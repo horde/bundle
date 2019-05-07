@@ -4,9 +4,7 @@
     "type": "project",
     "repositories": [
         {"url": "https://horde-satis.maintaina.com", "type": "composer"},
-        {"url": "https://github.com/maintaina-com/pear-core", "type": "vcs"},
-        {"url": "https://git.intern.b1-systems.de/development/horde/teams.git", "type": "vcs"}
-
+        {"url": "https://github.com/maintaina-com/pear-core", "type": "vcs"}
     ],
 
     "require": {
@@ -16,8 +14,7 @@
         "horde/content": "dev-master as 2.99.99",
         "horde/nag": "dev-master as 5.99.99",
         "horde/service_weather": "dev-master",
-        "horde/kronolith":  "dev-master",
-        "horde/teams":  "dev-master"
+        "horde/kronolith":  "dev-master"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.4"

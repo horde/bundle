@@ -14,6 +14,9 @@
         "horde/content": "dev-master as 2.99.99",
         "horde/nag": "dev-master as 5.99.99",
         "horde/service_weather": "dev-master",
+        "horde/mnemo": "dev-master",
+        "horde/passwd": "dev-master",
+        "horde/whups": "dev-master",
         "horde/kronolith":  "dev-master"
     },
     "require-dev": {

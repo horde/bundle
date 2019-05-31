@@ -4,6 +4,7 @@
     "type": "project",
     "repositories": [
         {"url": "https://horde-satis.maintaina.com", "type": "composer"},
+        {"url": "https://github.com/maintaina-com/horde-installer-plugin", "type": "vcs"},
         {"url": "https://github.com/maintaina-com/pear-core", "type": "vcs"}
     ],
 
@@ -33,4 +34,5 @@
     "prefer-stable": false,
       "extra": {
     "installer-types": ["horde-library", "horde-application"]
+    }
 }

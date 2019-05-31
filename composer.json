@@ -32,8 +32,5 @@
     "minimum-stability": "dev",
     "prefer-stable": false,
       "extra": {
-    "installer-types": ["horde-library", "horde-application"],
-    "installer-paths": {
-      "app/{$name}/": ["type:horde-application"]
-    }}
+    "installer-types": ["horde-library", "horde-application"]
 }

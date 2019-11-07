@@ -1,0 +1,7 @@
+
+web/*
+composer.lock
+.php_cs.cache
+vendor/*
+composer.phar
+.*.swp

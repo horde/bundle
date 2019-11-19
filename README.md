@@ -83,7 +83,6 @@ lunch> cat doc/registry.d/app-lunch.php
 <?php
 $this->applications['lunch']['name'] = _('Lunch');
 $this->applications['lunch']['provides'] = 'lunch';
-lunch> cat doc/registry.d/app-lunch.php
 
 ```
 

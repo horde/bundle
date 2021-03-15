@@ -1,27 +1,24 @@
 {
     "name": "horde/bundle",
-    "description": "A bundle of horde",
+    "description": "A base project for a horde installation",
     "type": "project",
-    "repositories": [
-        {"url": "https://horde-satis.maintaina.com", "type": "composer"},
-        {"url": "https://github.com/maintaina-com/horde-installer-plugin", "type": "vcs"},
-        {"url": "https://github.com/maintaina-com/pear-core", "type": "vcs"}
-    ],
-
+    "repositories": {
+        "0": {
+            "url": "https://horde-satis.maintaina.com",
+            "type": "composer"
+        }
+    },
     "require": {
-        "composer-plugin-api": "^1.0",
+        "composer-plugin-api": "^1.0 || ^2.0",
         "horde/horde-installer-plugin": "dev-master",
-        "horde/horde": "dev-master as 5.99.99",
-        "horde/content": "dev-master as 2.99.99",
-        "horde/nag": "dev-master as 5.99.99",
-        "horde/service_weather": "dev-master",
-        "horde/mnemo": "dev-master",
-        "horde/passwd": "dev-master",
-        "horde/whups": "dev-master",
-        "horde/kronolith":  "dev-master"
+        "horde/horde": "^6 || dev-FRAMEWORK_6_0",
+        "horde/routes": "^3 || dev-FRAMEWORK_6_0",
+        "horde/hordectl": "dev-master || ^1",
+        "pear/console_color2": "^0.1.2",
+        "pear/console_table": "^1.3"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "^3.4"
+        "horde/test": "dev-master || ^3"
     },
     "license": "GPL-3.0-only",
     "authors": [
@@ -31,8 +28,11 @@
         }
     ],
     "minimum-stability": "dev",
-    "prefer-stable": false,
-      "extra": {
-    "installer-types": ["horde-library", "horde-application"]
+    "prefer-stable": true,
+    "extra": {
+        "installer-types": [
+            "horde-library",
+            "horde-application"
+        ]
     }
 }

@@ -1,5 +1,13 @@
 # horde-deployment
-A composer deployed horde suite with address book, tasks, calendar etc
+A composer deployed horde suite
+
+Versions:
+
+- master    A Horde Base setup (development master versions)
+- FRAMEWORK_6_0 A Horde Base with versioned/tagged releases to the FRAMEWORK_6 branch (currently alpha)
+- FRAMEWORK_6_0_GROUPWARE A setup with with versioned/tagged releases. (currently alpha) Contains ansel (photo), content (tagger), imp (webmail), ingo (mail filters), kronolith (calendar), mnemo (notes), nag (tasks), passwd (password changing), timeobjects (misc data sources), turba (contacts)
+
+
 
 ## usage
 

@@ -12,6 +12,12 @@
     RewriteEngine On
     RewriteRule .* - [env=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
     RewriteRule .* - [env=REDIRECT_HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    # Catch all rewrites under rpc.php
+    RewriteRule ^rpc\.php(.*)$ horde/rpc.php/$1 [QSA,L]
+    # Catch everything in the /rpc/ dir
+    RewriteRule ^rpc/(.*)$ horde/rpc.php/$1 [QSA,L]
+    ## Catch /rpc without trailing slash but not /rpcsomething
+    RewriteRule ^rpc$ horde/rpc.php/ [QSA,L]
     RewriteCond   %{REQUEST_FILENAME}  !-d
     RewriteCond   %{REQUEST_FILENAME}  !-f
     RewriteRule ^(.*)$ horde/rampage.php [QSA,L]

@@ -12,6 +12,8 @@
     RewriteEngine On
     RewriteRule .* - [env=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
     RewriteRule .* - [env=REDIRECT_HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    # Catch everything ending exactly in rpc.php
+    RewriteRule ^rpc\.php$ horde/rpc.php [QSA,L]
     # Catch all rewrites under rpc.php
     RewriteRule ^rpc\.php(.*)$ horde/rpc.php/$1 [QSA,L]
     # Catch everything in the /rpc/ dir

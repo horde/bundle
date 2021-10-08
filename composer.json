@@ -9,8 +9,8 @@
         }
     },
     "require": {
-        "composer-plugin-api": "^1.0 || ^2.0",
-        "horde/horde-installer-plugin": "dev-FRAMEWORK_6_0 || dev-master",
+        "composer-plugin-api": "^2.0",
+        "horde/horde-installer-plugin": "dev-FRAMEWORK_6_0 || dev-master || *",
         "horde/horde": "^6 || dev-FRAMEWORK_6_0",
         "horde/routes": "^3 || dev-FRAMEWORK_6_0",
         "horde/hordectl": "dev-master || ^1 || dev-FRAMEWORK_6_0",

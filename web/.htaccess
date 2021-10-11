@@ -20,7 +20,17 @@
     RewriteRule ^rpc/(.*)$ horde/rpc.php/$1 [QSA,L]
     ## Catch /rpc without trailing slash but not /rpcsomething
     RewriteRule ^rpc$ horde/rpc.php/ [QSA,L]
+
+    ## Forward from traditional login location to subdir
+    RewriteCond   login.php  !-d
+    RewriteCond   login.php  !-f
+    RewriteRule login.php(.*)$ horde/login.php$1 [QSA,L]
+
+    ## Forward remaining requests to rampage controller framework
+    RewriteRule ^rpc$ horde/rpc.php/ [QSA,L]
     RewriteCond   %{REQUEST_FILENAME}  !-d
     RewriteCond   %{REQUEST_FILENAME}  !-f
     RewriteRule ^(.*)$ horde/rampage.php [QSA,L]
+</IfModule>
+
 </IfModule>

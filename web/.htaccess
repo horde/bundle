@@ -33,4 +33,3 @@
     RewriteRule ^(.*)$ horde/rampage.php [QSA,L]
 </IfModule>
 
-</IfModule>

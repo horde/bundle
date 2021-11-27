@@ -31,5 +31,10 @@
     RewriteCond   %{REQUEST_FILENAME}  !-d
     RewriteCond   %{REQUEST_FILENAME}  !-f
     RewriteRule ^(.*)$ horde/rampage.php [QSA,L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{DOCUMENT_ROOT}/$1/index.php !-f
+    RewriteRule ^(.*?)/?$ horde/rampage.php [L]
+
 </IfModule>
 

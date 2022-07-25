@@ -34,5 +34,10 @@
             "horde-library",
             "horde-application"
         ]
+    },
+    "config": {
+        "allow-plugins": {
+            "horde/horde-installer-plugin": true
+        }
     }
 }

@@ -2,12 +2,6 @@
     "name": "horde/bundle",
     "description": "A base project for a horde installation",
     "type": "project",
-    "repositories": {
-        "0": {
-            "url": "https://horde-satis.maintaina.com",
-            "type": "composer"
-        }
-    },
     "require": {
         "composer-plugin-api": "^2.0",
         "horde/horde-installer-plugin": "^2.5.1 || dev-FRAMEWORK_6_0 || dev-master",
@@ -24,7 +18,7 @@
     "authors": [
         {
             "name": "Ralf Lang",
-            "email": "lang@b1-systems.de"
+            "email": "ralf.lang@ralf-lang.de"
         }
     ],
     "minimum-stability": "dev",

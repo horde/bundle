@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "FRAMEWORK_6_0" ]
   schedule:
-    - cron: "* * */2 * *"
+    - cron: "0 0 */2 * *"
   workflow_dispatch:
 
 permissions:
@@ -34,6 +34,10 @@ jobs:
 
     - name: Install dependencies for composer.json as-is
       run: composer install --prefer-dist --no-progress
+    - name: Install passwd app
+      run: composer require horde/passwd --prefer-dist --no-progress
+    - name: Install mnemo app
+      run: composer require horde/mnemo --prefer-dist --no-progress
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md

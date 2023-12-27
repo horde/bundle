@@ -1,4 +1,4 @@
-name: PHP Composer
+name: PHP Composer install tests
 
 on:
   push:
@@ -36,8 +36,18 @@ jobs:
       run: composer install --prefer-dist --no-progress
     - name: Install passwd app
       run: composer require horde/passwd --prefer-dist --no-progress
-    - name: Install mnemo app
+    - name: Install content tagger app
+      run: composer require horde/content --prefer-dist --no-progress
+    - name: Install timeobjects app
+      run: composer require horde/timeobjects --prefer-dist --no-progress
+    - name: Install mnemo notes app
       run: composer require horde/mnemo --prefer-dist --no-progress
+    - name: Install ingo mail filter app
+      run: composer require horde/ingo --prefer-dist --no-progress
+    - name: Install turba addressbook app
+      run: composer require horde/turba --prefer-dist --no-progress
+    - name: Install kronolith calendar app
+      run: composer require horde/kronolith --prefer-dist --no-progress
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md

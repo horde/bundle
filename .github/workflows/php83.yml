@@ -23,8 +23,8 @@ jobs:
     - name: Upgrade to PHP 8.3 from PPA and print PHP version
       run: |
         sudo add-apt-repository ppa:ondrej/php
-        sudo apt update
-        sudo apt install php8.3 php8.3-dom php8.3-pdo php8.3-sqlite3 php8.3-mysql php8.3-curl php8.3-intl php8.3-mbstring php8.3-cli php8.3-fpm
+        sudo apt -o Dpkg::Progress-Fancy=0 update
+        sudo apt -o Dpkg::Progress-Fancy=0 install php8.3 php8.3-dom php8.3-pdo php8.3-sqlite3 php8.3-mysql php8.3-curl php8.3-intl php8.3-mbstring php8.3-cli php8.3-fpm
         sudo update-alternatives --set php /usr/bin/php8.3
         which php
         php --version
@@ -58,7 +58,9 @@ jobs:
     - name: Install kronolith calendar app
       run: composer require horde/kronolith --prefer-dist --no-progress
     - name: Install whups ticketing app
-      run: composer require horde/kronolith --prefer-dist --no-progress
+      run: composer require horde/whups --prefer-dist --no-progress
+    - name: Install trean bookmarks app
+      run: composer require horde/trean --prefer-dist --no-progress
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md

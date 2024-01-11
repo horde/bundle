@@ -23,6 +23,9 @@ jobs:
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
 
+    - name: Print PHP verson used for transparency
+      run: which php; php --version
+
     - name: Cache Composer packages
       id: composer-cache
       uses: actions/cache@v3
@@ -47,6 +50,8 @@ jobs:
     - name: Install turba addressbook app
       run: composer require horde/turba --prefer-dist --no-progress
     - name: Install kronolith calendar app
+      run: composer require horde/kronolith --prefer-dist --no-progress
+    - name: Install whups ticketing app
       run: composer require horde/kronolith --prefer-dist --no-progress
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"

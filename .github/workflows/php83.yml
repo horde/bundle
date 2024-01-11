@@ -1,4 +1,4 @@
-name: PHP Composer install tests - Ubuntu builtin PHP
+name: PHP Composer install tests - Ubuntu PPA PHP 8.3
 
 on:
   push:
@@ -20,11 +20,17 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Upgrade to PHP 8.3 from PPA and print PHP version
+      run: |
+        sudo add-apt-repository ppa:ondrej/php
+        sudo apt update
+        sudo apt install php8.3 php8.3-dom php8.3-pdo php8.3-sqlite3 php8.3-mysql php8.3-curl php8.3-intl php8.3-mbstring php8.3-cli php8.3-fpm
+        sudo update-alternatives --set php /usr/bin/php8.3
+        which php
+        php --version
+
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
-
-    - name: Print PHP verson used for transparency
-      run: which php; php --version
 
     - name: Cache Composer packages
       id: composer-cache

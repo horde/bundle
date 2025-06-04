@@ -50,25 +50,27 @@ jobs:
     - name: Install dependencies for composer.json as-is
       run: composer install --no-progress
     - name: Install passwd app
-      run: composer require horde/passwd
+      run: composer require horde/passwd --no-progress
     - name: Install content tagger app
-      run: composer require horde/content
+      run: composer require horde/content --no-progress
     - name: Install timeobjects app
-      run: composer require horde/timeobjects
+      run: composer require horde/timeobjects --no-progress
     - name: Install mnemo notes app
-      run: composer require horde/mnemo
+      run: composer require horde/mnemo --no-progress
     - name: Install ingo mail filter app
-      run: composer require horde/ingo
+      run: composer require horde/ingo --no-progress
     - name: Install turba addressbook app
-      run: composer require horde/turba
+      run: composer require horde/turba --no-progress
     - name: Install kronolith calendar app
-      run: composer require horde/kronolith
+      run: composer require horde/kronolith --no-progress
     - name: Install whups ticketing app
-      run: composer require horde/whups
+      run: composer require horde/whups --no-progress
     - name: Install trean bookmarks app
-      run: composer require horde/trean
+      run: composer require horde/trean --no-progress
     - name: Install jonah rss feed app
-      run: composer require horde/jonah
+      run: composer require horde/jonah --no-progress
+    - name: Install gollem file manager
+      run: composer require horde/gollem --no-progress
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md

@@ -61,6 +61,12 @@ jobs:
       run: composer require horde/whups --prefer-dist --no-progress
     - name: Install trean bookmarks app
       run: composer require horde/trean --prefer-dist --no-progress
+    - name: Install chora version control system viewer
+      run: composer require horde/chora --prefer-dist --no-progress
+    - name: Install jonah rss feed app
+      run: composer require horde/jonah --prefer-dist --no-progress
+    - name: Install trean bookmarks app
+      run: composer require horde/trean --prefer-dist --no-progress
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md

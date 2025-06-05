@@ -24,7 +24,7 @@ jobs:
       run: |
         sudo add-apt-repository ppa:ondrej/php
         sudo apt -o Dpkg::Progress-Fancy=0 update
-        sudo apt -o Dpkg::Progress-Fancy=0 install php8.4 php8.4-dom php8.4-pdo php8.4-sqlite3 php8.4-mysql php8.4-curl php8.4-intl php8.4-mbstring php8.4-cli php8.4-fpm php8.4-ldap
+        sudo apt -o Dpkg::Progress-Fancy=0 install php8.4 php8.4-dom php8.4-pdo php8.4-sqlite3 php8.4-mysql php8.4-curl php8.4-intl php8.4-mbstring php8.4-cli php8.4-fpm php8.4-ldap php8.4-bcmath
         sudo update-alternatives --set php /usr/bin/php8.4
         which php
         php --version

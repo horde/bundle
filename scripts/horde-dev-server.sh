@@ -178,6 +178,10 @@ log_info "Press Ctrl+C to stop"
 echo ""
 echo "--------------------------------------"
 
-# Start the server
+# Get the script directory (where this script is located)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROUTER_SCRIPT="$SCRIPT_DIR/router.php"
+
+# Start the server with router
 cd "$DOCUMENT_ROOT"
-exec "$PHP_BINARY" -S "${HOST}:${PORT}" -t "$DOCUMENT_ROOT"
+exec "$PHP_BINARY" -S "${HOST}:${PORT}" -t "$DOCUMENT_ROOT" "$ROUTER_SCRIPT"

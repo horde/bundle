@@ -99,7 +99,8 @@ jobs:
 
           # Install composer dependencies
           cd /var/www/horde
-          sudo composer install --no-dev --no-interaction --prefer-dist
+          sudo COMPOSER_ALLOW_SUPERUSER=1 composer config minimum-stability dev
+          sudo COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --prefer-dist
 
           # Set ownership for Apache
           sudo chown -R www-data:www-data /var/www/horde
@@ -195,7 +196,8 @@ jobs:
 
           sudo hordectl configure auth --driver=sql --encryption=ssha
 
-          sudo /var/www/horde/vendor/bin/horde-db-migrate up
+          cd /var/www/horde
+          sudo -u www-data vendor/bin/horde-db-migrate up
 
       - name: Configure admin secret for API
         run: |

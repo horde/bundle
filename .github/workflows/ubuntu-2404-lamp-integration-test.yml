@@ -138,26 +138,8 @@ jobs:
           sudo systemctl start php8.4-fpm
           sudo systemctl enable php8.4-fpm
 
-          # Create vhost config
-          sudo tee /etc/apache2/sites-available/horde.conf > /dev/null << 'EOF'
-          <VirtualHost *:80>
-              ServerName localhost
-              DocumentRoot /var/www/horde/web
-
-              <Directory /var/www/horde/web>
-                  Options -Indexes +FollowSymLinks
-                  AllowOverride All
-                  Require all granted
-
-                  <FilesMatch \.php$>
-                      SetHandler "proxy:unix:/run/php/php8.4-fpm.sock|fcgi://localhost"
-                  </FilesMatch>
-              </Directory>
-
-              ErrorLog ${APACHE_LOG_DIR}/horde-test-error.log
-              CustomLog ${APACHE_LOG_DIR}/horde-test-access.log combined
-          </VirtualHost>
-          EOF
+          # Copy vhost config
+          sudo cp test/fixtures/apache-horde.conf /etc/apache2/sites-available/horde.conf
 
           # Enable modules
           sudo a2enmod rewrite

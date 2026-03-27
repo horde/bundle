@@ -103,7 +103,13 @@ jobs:
 
           # Set ownership for Apache
           sudo chown -R www-data:www-data /var/www/horde
-          sudo chmod -R 755 /var/www/horde
+
+          # Set correct permissions: directories 755, files 644
+          sudo find /var/www/horde -type d -exec chmod 755 {} \;
+          sudo find /var/www/horde -type f -exec chmod 644 {} \;
+
+          # Make scripts executable
+          sudo chmod +x /var/www/horde/vendor/bin/*
 
           # Ensure var directories are writable
           sudo chmod -R 775 /var/www/horde/var
@@ -189,7 +195,7 @@ jobs:
 
           sudo hordectl configure auth --driver=sql --encryption=ssha
 
-          sudo -u www-data /var/www/horde/vendor/bin/horde-db-migrate up
+          sudo /var/www/horde/vendor/bin/horde-db-migrate up
 
       - name: Configure admin secret for API
         run: |

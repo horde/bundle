@@ -4,13 +4,10 @@
     "type": "project",
     "require": {
         "composer-plugin-api": "^2.2",
-        "horde/horde-installer-plugin": "^3 || ^2.5.1 || dev-FRAMEWORK_6_0 || dev-master",
+        "horde/horde-installer-plugin": "^3 || dev-FRAMEWORK_6_0",
         "horde/horde": "^6 || dev-FRAMEWORK_6_0",
         "horde/routes": "^3 || dev-FRAMEWORK_6_0",
-        "horde/hordectl": "^1 || dev-FRAMEWORK_6_0 || dev-master"
-    },
-    "require-dev": {
-        "horde/test": "^3 || dev-FRAMEWORK_6_0 || dev-master"
+        "horde/hordectl": "^1 || dev-FRAMEWORK_6_0"
     },
     "license": "GPL-3.0-only",
     "authors": [
@@ -19,11 +16,12 @@
             "email": "ralf.lang@ralf-lang.de"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "alpha",
     "prefer-stable": true,
     "extra": {
         "installer-types": [
             "horde-library",
+            "horde-theme",
             "horde-application"
         ]
     },

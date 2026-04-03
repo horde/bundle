@@ -4,7 +4,7 @@
     "type": "project",
     "require": {
         "composer-plugin-api": "^2.2",
-        "horde/horde-installer-plugin": "^3 || dev-FRAMEWORK_6_0",
+        "horde/horde-installer-plugin": "^3.4 || dev-FRAMEWORK_6_0",
         "horde/horde": "^6 || dev-FRAMEWORK_6_0",
         "horde/routes": "^3 || dev-FRAMEWORK_6_0",
         "horde/hordectl": "^1 || dev-FRAMEWORK_6_0"

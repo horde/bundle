@@ -27,3 +27,7 @@ composer.phar
 /phpstan.neon
 # PHPStan cache directory
 /.phpstan.cache/
+
+# Added by horde-components QC --fix-qc-issues
+# PHPUnit Cache (other)
+/.phpunit.cache

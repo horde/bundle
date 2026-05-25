@@ -1,6 +1,6 @@
 ---
 id: bundle
-name: Horde Bundle
+name: bundle
 full: Horde Bundle deployment project
 description: >-
   A base project for a Horde installation. Provides structure and tooling

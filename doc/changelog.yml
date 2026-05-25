@@ -1,0 +1,12 @@
+---
+1.1.0:
+  api: 1.1.0
+  state:
+    release: RC
+    api: RC
+  date: 2026-05-19
+  notes: |
+    Initial H6 release of the Horde bundle.
+  changes:
+    feat:
+      - "feat(bundle): initial horde 6 bundle packaging"

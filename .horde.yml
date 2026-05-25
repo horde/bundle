@@ -3,8 +3,8 @@ id: bundle
 name: bundle
 full: Horde Bundle deployment project
 description: >-
-  A base project for a Horde installation. Provides structure and tooling
-  for deploying a complete Horde suite via Composer.
+  A base project for a Horde installation. Provides structure and tooling for
+  deploying a complete Horde suite via Composer.
 list: horde
 type: project
 authors:
@@ -30,7 +30,7 @@ dependencies:
       horde/horde-installer-plugin: ^3.4
       horde/horde: ^6
       horde/routes: ^3
-      hordectl: ^1
+      horde/hordectl: ^1
 vendor: horde
 keywords:
   - root_component

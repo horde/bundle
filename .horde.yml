@@ -15,10 +15,10 @@ authors:
     active: true
     role: lead
 version:
-  release: 1.1.0
+  release: 1.1.1-RC1
   api: 1.0.0
 state:
-  release: stable
+  release: RC
   api: stable
 license:
   identifier: GPL-3.0-only

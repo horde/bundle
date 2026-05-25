@@ -1,33 +1,45 @@
 {
     "name": "horde/bundle",
-    "description": "A base project for a horde installation",
+    "description": "Horde Bundle deployment project",
     "type": "project",
+    "homepage": "https://www.horde.org",
+    "license": "GPL-3.0-only",
+    "authors": [
+        {
+            "name": "Ralf Lang",
+            "email": "ralf.lang@ralf-lang.de",
+            "role": "lead"
+        }
+    ],
+    "keywords": [
+        "root_component"
+    ],
+    "time": "2026-05-25",
+    "repositories": [],
     "require": {
-        "composer-plugin-api": "^2.2",
+        "php": "^8.1",
         "horde/horde-installer-plugin": "^3.4 || dev-FRAMEWORK_6_0",
         "horde/horde": "^6 || dev-FRAMEWORK_6_0",
         "horde/routes": "^3 || dev-FRAMEWORK_6_0",
         "horde/hordectl": "^1 || dev-FRAMEWORK_6_0"
     },
-    "license": "GPL-3.0-only",
-    "authors": [
-        {
-            "name": "Ralf Lang",
-            "email": "ralf.lang@ralf-lang.de"
+    "require-dev": {},
+    "suggest": {},
+    "autoload": {},
+    "autoload-dev": {
+        "psr-4": {
+            "Horde\\Bundle\\Test\\": "test/",
+            "Horde\\Bundle\\Test\\Fixtures\\": "test/fixtures/"
         }
-    ],
-    "minimum-stability": "alpha",
-    "prefer-stable": true,
-    "extra": {
-        "installer-types": [
-            "horde-library",
-            "horde-theme",
-            "horde-application"
-        ]
     },
     "config": {
         "allow-plugins": {
             "horde/horde-installer-plugin": true
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-FRAMEWORK_6_0": "1.x-dev"
         }
     }
 }

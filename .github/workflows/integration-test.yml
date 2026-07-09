@@ -1,0 +1,519 @@
+name: Integration Test (reusable)
+
+# End-to-end bring-up of a Horde install driven by hordectl 1.1+.
+#
+# This workflow is `workflow_call`-only. The two LAMP/LEPP wrappers
+# pass concrete (db, webserver, php) tuples. Everything specific to
+# each stack lives in gated steps; the hordectl invocations that don't
+# care about the stack are shared verbatim.
+#
+# hordectl is consumed as a phar (org variable HORDECTL_PHAR_URL), NOT
+# as a global composer install. Rationale: hordectl bootstraps the very
+# thing composer is being asked to install; running the tool as a phar
+# keeps its dependency graph from colliding with the bundle's.
+
+on:
+  workflow_call:
+    inputs:
+      db:
+        description: 'Database engine: mysql or pgsql'
+        required: true
+        type: string
+      webserver:
+        description: 'Web server: apache2 or nginx'
+        required: true
+        type: string
+      php:
+        description: 'PHP major.minor to install from ondrej PPA'
+        required: false
+        type: string
+        default: '8.4'
+      composer-stability:
+        description: 'minimum-stability to configure before install'
+        required: false
+        type: string
+        default: 'stable'
+      hordectl-stability:
+        description: '--stability flag passed to hordectl install'
+        required: false
+        type: string
+        default: 'stable'
+
+jobs:
+  integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install PHP ${{ inputs.php }} and prerequisites
+        run: |
+          set -ex
+
+          # Add PHP PPA and refresh package lists.
+          sudo add-apt-repository ppa:ondrej/php -y
+          sudo apt update
+
+          # DB-specific PHP extension and server package. Kept as bash
+          # switches rather than a matrix include so the caller sees a
+          # single flag (db=mysql|pgsql) instead of five.
+          case "${{ inputs.db }}" in
+            mysql)
+              DB_EXT=php${{ inputs.php }}-mysql
+              DB_SERVER=mysql-server
+              ;;
+            pgsql)
+              DB_EXT=php${{ inputs.php }}-pgsql
+              DB_SERVER='postgresql postgresql-contrib'
+              ;;
+            *)
+              echo "Unknown db input: ${{ inputs.db }}"; exit 1 ;;
+          esac
+
+          sudo apt install -y \
+            php${{ inputs.php }} \
+            php${{ inputs.php }}-cli \
+            php${{ inputs.php }}-fpm \
+            $DB_EXT \
+            php${{ inputs.php }}-xml \
+            php${{ inputs.php }}-mbstring \
+            php${{ inputs.php }}-curl \
+            php${{ inputs.php }}-gd \
+            php${{ inputs.php }}-intl \
+            php${{ inputs.php }}-bcmath \
+            php${{ inputs.php }}-zip \
+            $DB_SERVER \
+            ${{ inputs.webserver }} \
+            composer
+
+          sudo update-alternatives --set php /usr/bin/php${{ inputs.php }}
+          php -v
+          composer --version
+
+      - name: Configure MySQL database
+        if: inputs.db == 'mysql'
+        run: |
+          set -ex
+
+          # Fresh MySQL data directory. GitHub's runner image ships with
+          # MySQL pre-initialized on a data dir we don't control; wipe
+          # and reinitialize so this step is deterministic.
+          sudo systemctl stop mysql
+          sudo rm -rf /var/lib/mysql
+          sudo mkdir -p /var/lib/mysql
+          sudo chown -R mysql:mysql /var/lib/mysql
+          sudo chmod 750 /var/lib/mysql
+          sudo mysqld --initialize-insecure --user=mysql --datadir=/var/lib/mysql
+          sudo systemctl start mysql
+          sleep 5
+
+          sudo mysql -u root <<'EOF'
+          CREATE DATABASE horde_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+          CREATE USER 'horde'@'localhost' IDENTIFIED BY 'test123';
+          GRANT ALL PRIVILEGES ON horde_test.* TO 'horde'@'localhost';
+          FLUSH PRIVILEGES;
+          EOF
+
+          sudo mysql -u root -e "SHOW DATABASES LIKE 'horde_test';"
+
+      - name: Configure PostgreSQL database
+        if: inputs.db == 'pgsql'
+        run: |
+          set -ex
+
+          sudo systemctl start postgresql
+          sudo systemctl enable postgresql
+
+          sudo -u postgres psql <<'EOF'
+          -- Use template0 with C.UTF-8 to sidestep collation
+          -- mismatches with the runner image's template1 (which was
+          -- created with C.UTF-8 on ubuntu-24.04; template1 collation
+          -- must match any CREATE DATABASE that doesn't override it).
+          CREATE DATABASE horde_test WITH TEMPLATE=template0 ENCODING='UTF8' LC_COLLATE='C.UTF-8' LC_CTYPE='C.UTF-8';
+          CREATE USER horde WITH PASSWORD 'test123';
+          GRANT ALL PRIVILEGES ON DATABASE horde_test TO horde;
+          \c horde_test
+          GRANT ALL ON SCHEMA public TO horde;
+          EOF
+
+          sudo -u postgres psql -c "\l horde_test"
+
+      - name: Download hordectl phar
+        run: |
+          set -ex
+
+          # Bootstrapping the tool itself is the one step that has to
+          # stay manual: hordectl can't install its own phar. The org
+          # variable HORDECTL_PHAR_URL points at the current release
+          # phar on GitHub Releases.
+          PHAR_URL="${{ vars.HORDECTL_PHAR_URL }}"
+          if [ -z "$PHAR_URL" ]; then
+            echo "❌ vars.HORDECTL_PHAR_URL not set at repo/org level"
+            exit 1
+          fi
+          curl -L "$PHAR_URL" -o hordectl.phar
+          chmod +x hordectl.phar
+          sudo mv hordectl.phar /usr/local/bin/hordectl
+          hordectl version
+
+      - name: Install Horde bundle via hordectl
+        run: |
+          set -ex
+
+          # `hordectl install` downloads the horde/bundle tarball,
+          # unpacks it under --install-dir, runs composer install
+          # inside, and auto-registers a hordectl target pointing at
+          # the install. No manual cp / composer / chown / find-chmod
+          # dance is needed anymore.
+          #
+          # We copy $GITHUB_WORKSPACE into place FIRST so we test the
+          # PR-checkout of the bundle rather than the released tarball
+          # hordectl would otherwise fetch. `hordectl install` then
+          # runs composer + registers the target against that path.
+          sudo mkdir -p /var/www/horde
+          sudo cp -r $GITHUB_WORKSPACE/. /var/www/horde/
+
+          cd /var/www/horde
+          if [ "${{ inputs.composer-stability }}" != "stable" ]; then
+            sudo COMPOSER_ALLOW_SUPERUSER=1 composer config minimum-stability ${{ inputs.composer-stability }}
+            sudo COMPOSER_ALLOW_SUPERUSER=1 composer config prefer-stable true
+          fi
+          sudo COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --prefer-dist
+
+          # Ownership and permissions for the web server. www-data on
+          # Ubuntu 24.04 covers both apache2 and nginx.
+          sudo chown -R www-data:www-data /var/www/horde
+          sudo chmod -R 755 /var/www/horde
+          sudo chmod -R 775 /var/www/horde/var
+
+          # Register the checked-out install as a hordectl target.
+          # `hordectl install` would do this for a fetched tarball; we
+          # skipped that path so target add explicitly.
+          sudo hordectl target add ci-test --type=local --path=/var/www/horde
+          sudo hordectl target use ci-test
+          sudo hordectl target current
+
+          # Sanity check: bundle layout is what we expect.
+          test -f /var/www/horde/composer.json
+          test -d /var/www/horde/vendor/horde
+          test -d /var/www/horde/web
+          test -f /var/www/horde/web/index.php
+
+      - name: Generate Apache vhost via hordectl webserver-config
+        if: inputs.webserver == 'apache2'
+        run: |
+          set -ex
+
+          # Tier-3 synthesis: --default-url + --root-bundle-path.
+          # Right choice here because the target's live registry isn't
+          # reachable yet (Apache isn't up), so hordectl generates the
+          # vhost from the bundle's shipped registry snapshot instead.
+          sudo mkdir -p /var/www/horde/var/webserver
+          sudo hordectl webserver-config apache-vhost \
+            --default-url=http://localhost \
+            --root-bundle-path=/var/www/horde \
+            --output-dir=/var/www/horde/var/webserver/apache-vhost \
+            --force
+
+      - name: Configure Apache web server
+        if: inputs.webserver == 'apache2'
+        run: |
+          set -ex
+
+          # Start PHP-FPM before Apache so the ProxyPassMatch to
+          # unix:/run/php/php${VERSION}-fpm.sock has something to reach.
+          sudo systemctl start php${{ inputs.php }}-fpm
+          sudo systemctl enable php${{ inputs.php }}-fpm
+
+          # a2enmod: the generated vhost uses Rewrite + proxy_fcgi +
+          # SetEnvIf directives, but hordectl doesn't (and shouldn't)
+          # touch /etc/apache2/mods-enabled/. This must stay manual.
+          sudo a2enmod rewrite proxy_fcgi setenvif
+
+          # Drop the hordectl-generated tree into place. sites/*.conf
+          # goes into sites-available, horde-includes/ goes under
+          # ServerRoot so the vhost's absolute Include lines resolve.
+          sudo cp -r /var/www/horde/var/webserver/apache-vhost/horde-includes /etc/apache2/
+          sudo cp /var/www/horde/var/webserver/apache-vhost/sites/localhost.conf /etc/apache2/sites-available/horde.conf
+
+          sudo a2dissite 000-default
+          sudo a2ensite horde
+          sudo apachectl configtest
+          sudo systemctl restart apache2
+
+          sudo systemctl status php${{ inputs.php }}-fpm --no-pager
+          sudo systemctl status apache2 --no-pager
+
+      - name: Generate nginx site via hordectl webserver-config
+        if: inputs.webserver == 'nginx'
+        run: |
+          set -ex
+
+          # Same tier-3 synthesis as the Apache branch. Generator picks
+          # up nginx-specific conventions (fastcgi_pass to the FPM
+          # socket, HTTP_AUTHORIZATION passthrough for the admin API)
+          # from the flavor name.
+          sudo mkdir -p /var/www/horde/var/webserver
+          sudo hordectl webserver-config nginx \
+            --default-url=http://localhost \
+            --root-bundle-path=/var/www/horde \
+            --output-dir=/var/www/horde/var/webserver/nginx \
+            --force
+
+      - name: Configure nginx web server
+        if: inputs.webserver == 'nginx'
+        run: |
+          set -ex
+
+          sudo systemctl start php${{ inputs.php }}-fpm
+          sudo systemctl enable php${{ inputs.php }}-fpm
+
+          sudo cp -r /var/www/horde/var/webserver/nginx/horde-includes /etc/nginx/
+          sudo cp /var/www/horde/var/webserver/nginx/sites/localhost.conf /etc/nginx/sites-available/horde.conf
+
+          sudo rm -f /etc/nginx/sites-enabled/default
+          sudo ln -sf /etc/nginx/sites-available/horde.conf /etc/nginx/sites-enabled/horde.conf
+          sudo nginx -t
+          sudo systemctl restart nginx
+
+          sudo systemctl status php${{ inputs.php }}-fpm --no-pager
+          sudo systemctl status nginx --no-pager
+
+      - name: Activate Horde installation
+        run: |
+          set -ex
+
+          sudo hordectl activate
+          sudo chown -R www-data:www-data /var/www/horde/var
+
+      - name: Configure database connection
+        run: |
+          set -ex
+
+          # Charset per engine. utf8mb4 for MySQL (real 4-byte UTF-8),
+          # utf8 for PostgreSQL (which stores UTF-8 unconditionally and
+          # ignores the value anyway).
+          case "${{ inputs.db }}" in
+            mysql) CHARSET=utf8mb4; PORT=3306 ;;
+            pgsql) CHARSET=utf8;    PORT=5432 ;;
+          esac
+
+          sudo hordectl configure database \
+            --type=${{ inputs.db }} \
+            --host=localhost \
+            --port=$PORT \
+            --username=horde \
+            --password=test123 \
+            --database=horde_test \
+            --charset=$CHARSET
+
+      - name: Configure session handler
+        run: |
+          set -ex
+
+          # --ensure-session-secret seeds the HKDF master key. Without
+          # it the first request would fatal on missing $conf['secret_key'].
+          sudo hordectl configure session \
+            --type=builtin \
+            --cookie-domain='' \
+            --ensure-session-secret
+
+      - name: Configure authentication and run migrations
+        run: |
+          set -ex
+
+          sudo hordectl configure auth --driver=sql --encryption=ssha
+          sudo -u www-data /var/www/horde/vendor/bin/horde-db-migrate up
+
+      - name: Configure admin API endpoint and secret
+        run: |
+          set -ex
+
+          # Endpoint carries the /horde path segment: the bundle's
+          # shipped registry places the horde app at /horde/, so the
+          # admin API lives at /horde/api/v1/admin/*.
+          sudo hordectl target update ci-test --endpoint=http://localhost/horde
+          sudo hordectl secret generate
+
+      - name: Create administrator user
+        run: |
+          set -ex
+
+          sudo hordectl create user --username=administrator --password=admin123
+
+      - name: Run all hordectl subsystem tests
+        run: |
+          set -ex
+
+          # `test all` exercises db, cache, session, logger, auth, jwt
+          # in one call. Replaces the earlier per-subsystem invocations.
+          sudo hordectl test all
+
+      - name: Probe admin API readiness
+        run: |
+          set -ex
+
+          # Locate the target config to extract the freshly-generated
+          # admin_secret. sudo preserves $HOME under Actions by default,
+          # so the file may land under /home/runner/ rather than /root/.
+          CONFIG=""
+          for candidate in /root/.config/horde/hordectl.php /home/runner/.config/horde/hordectl.php; do
+            if sudo test -f "$candidate"; then
+              CONFIG="$candidate"
+              break
+            fi
+          done
+          if [ -z "$CONFIG" ]; then
+            echo "❌ hordectl target config not found"
+            sudo find / -name hordectl.php 2>/dev/null | head
+            exit 1
+          fi
+
+          SECRET=$(sudo php -r "
+            \$c = require '$CONFIG';
+            \$current = \$c['current-target'] ?? '';
+            \$t = \$c['targets'][\$current] ?? [];
+            echo \$t['admin_secret'] ?? '';
+          ")
+          if [ -z "$SECRET" ]; then
+            echo "❌ Could not extract admin_secret from target config"
+            exit 1
+          fi
+          echo "::add-mask::$SECRET"
+          echo "HORDECTL_CONFIG=$CONFIG" >> "$GITHUB_ENV"
+
+          # Retry the readiness route a few times: there's a small
+          # window between secret write and FPM picking up the new
+          # conf.php on some kernels.
+          for attempt in 1 2 3 4 5; do
+            HTTP_CODE=$(curl -sS -o /tmp/info.json -w '%{http_code}' \
+              -H "Authorization: Bearer $SECRET" \
+              http://localhost/horde/api/v1/admin/info || echo "curl-failed")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ admin API responded 200 on attempt $attempt"
+              break
+            fi
+            echo "  attempt $attempt: HTTP $HTTP_CODE"
+            if [ "$attempt" = "5" ]; then
+              echo "❌ /horde/api/v1/admin/info never became ready"
+              cat /tmp/info.json || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+          grep -q '"version"' /tmp/info.json || {
+            echo "❌ admin/info response missing version field"
+            cat /tmp/info.json
+            exit 1
+          }
+
+      - name: Exercise admin API through hordectl
+        run: |
+          set -ex
+
+          # Each query round-trips through the Bearer-authenticated
+          # admin API. Failure here indicates broken API wiring, not
+          # broken web routing (which the readiness probe covers).
+          echo "--- query apps ---"
+          sudo hordectl query apps | head -30
+
+          echo "--- query registry (head) ---"
+          sudo hordectl query registry | head -30
+
+          echo "--- query user administrator ---"
+          sudo hordectl query user administrator | head -20
+
+          echo "--- query group ---"
+          sudo hordectl query group | head -20 || echo "no groups yet"
+
+      - name: Verify web accessibility
+        run: |
+          set -ex
+
+          # Raw HTTP smoke, separate from the API round-trip above.
+          curl -f http://localhost/ || exit 1
+          curl -s http://localhost/ | grep -i "horde" || echo "⚠️  'horde' not in response body"
+
+      - name: Dump diagnostics on failure
+        if: failure()
+        run: |
+          set +e
+          echo "=== Web server error log ==="
+          if [ "${{ inputs.webserver }}" = "apache2" ]; then
+            sudo cat /var/log/apache2/error.log 2>/dev/null || echo "no apache2 error.log"
+            echo "=== Apache access log ==="
+            sudo cat /var/log/apache2/access.log 2>/dev/null || echo "no apache2 access.log"
+          else
+            sudo cat /var/log/nginx/error.log 2>/dev/null || echo "no nginx error.log"
+            echo "=== nginx access log ==="
+            sudo cat /var/log/nginx/access.log 2>/dev/null || echo "no nginx access.log"
+          fi
+
+          echo
+          echo "=== Live HTTP probes ==="
+          # Each probe dumps status + body preview so subpath-routing
+          # bugs and PHP 500s are equally easy to spot.
+          for probe in \
+            'http://localhost/' \
+            'http://localhost/horde/' \
+            'http://localhost/horde/observability/readiness' \
+            'http://localhost/horde/api/v1/admin/info'; do
+            echo "--- $probe ---"
+            curl -sS -o /tmp/probe.body -w 'HTTP %{http_code}  size %{size_download}b\n' "$probe" 2>&1 || echo "curl failed"
+            echo "body:"; head -c 400 /tmp/probe.body; echo; echo
+          done
+
+          echo "=== PHP-FPM error log ==="
+          sudo cat /var/log/php${{ inputs.php }}-fpm.log 2>/dev/null || echo "no FPM log"
+
+          echo
+          echo "=== Generated web server config actually loaded ==="
+          if [ "${{ inputs.webserver }}" = "apache2" ]; then
+            sudo cat /etc/apache2/sites-available/horde.conf 2>/dev/null || echo "no horde.conf"
+            echo "=== horde-includes/apps/horde.conf ==="
+            sudo cat /etc/apache2/horde-includes/apps/horde.conf 2>/dev/null || echo "no horde app conf"
+          else
+            sudo cat /etc/nginx/sites-available/horde.conf 2>/dev/null || echo "no horde.conf"
+            echo "=== horde-includes/apps/horde.conf ==="
+            sudo cat /etc/nginx/horde-includes/apps/horde.conf 2>/dev/null || echo "no horde app conf"
+          fi
+
+          echo
+          echo "=== /var/www/horde/web/ listing ==="
+          # php-fpm "Primary script unknown" almost always means
+          # SCRIPT_FILENAME points at a path that doesn't exist or
+          # www-data can't read.
+          sudo ls -la /var/www/horde/web/ 2>&1 | head -30 || echo "no /var/www/horde/web"
+          sudo ls -la /var/www/horde/web/horde/ 2>&1 | head -20 || echo "no /var/www/horde/web/horde"
+
+          echo
+          echo "=== Horde conf.php ==="
+          sudo cat /var/www/horde/var/config/horde/conf.php 2>/dev/null || echo "No conf.php"
+
+          echo
+          echo "=== hordectl target current ==="
+          sudo hordectl target current || echo "target current failed"
+
+          echo
+          echo "=== hordectl target config (admin_secret masked) ==="
+          CONFIG="${HORDECTL_CONFIG:-}"
+          if [ -z "$CONFIG" ] || ! sudo test -f "$CONFIG"; then
+            CONFIG=$(sudo find /root /home/runner -name hordectl.php 2>/dev/null | head -1)
+          fi
+          if [ -n "$CONFIG" ] && sudo test -f "$CONFIG"; then
+            sudo php -r "
+              \$c = @require '$CONFIG';
+              if (!is_array(\$c)) { echo '(no target config)' . PHP_EOL; exit; }
+              foreach ((\$c['targets'] ?? []) as \$name => \$t) {
+                if (isset(\$t['admin_secret']) && \$t['admin_secret'] !== '') {
+                  \$t['admin_secret'] = '(masked)';
+                }
+                echo \$name . ': ' . json_encode(\$t, JSON_PRETTY_PRINT) . PHP_EOL;
+              }
+            "
+          else
+            echo "(no target config found)"
+          fi

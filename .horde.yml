@@ -8,17 +8,16 @@ description: >-
 list: horde
 type: project
 authors:
-  -
-    name: Ralf Lang
+  - name: Ralf Lang
     user: rlang
     email: ralf.lang@ralf-lang.de
     active: true
     role: lead
 version:
-  release: 1.1.1-RC1
+  release: 1.1.2
   api: 1.0.0
 state:
-  release: RC
+  release: ''
   api: stable
 license:
   identifier: GPL-3.0-only

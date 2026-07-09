@@ -6,6 +6,9 @@ vendor/*
 composer.phar
 .*.swp
 
+## Don't checkin runtime content
+var/
+
 # Added by horde-components QC --fix-qc-issues
 # Build artifacts directory
 /build/

@@ -1,4 +1,14 @@
 ---
+1.1.2:
+  api: 1.1.2
+  state:
+    release: stable
+    api: stable
+  date: 2026-07-09
+  license:
+    identifier: GPL-3.0-only
+    uri: https://spdx.org/licenses/GPL-3.0-only.html
+  notes: Release version 1.1.2
 1.1.1-RC1:
   api: 1.1.1-RC1
   state:
@@ -8,36 +18,14 @@
   license:
     identifier: GPL-3.0-only
     uri: https://spdx.org/licenses/GPL-3.0-only.html
-  notes: |-
-    fix(bundle): add vendor prefix to hordectl dependency
-    fix(bundle): correct package name to horde/bundle
-    chore(bundle): add changelog.yml for release tooling
-    chore(bundle): add doc/ directory for release tooling
-    chore: add gitignore entries
-    chore: Only support installer 3.4 and newer
-    doc: Update README
-    ci: prototype of a LEPP equivalent of the apache workflow
-    fix(ci): run migrations from install dir with proper composer config
-    fix: Run migrations as root
-    ci: use apache vhost fixture with rewrite rules for API auth
-    ci: add Ubuntu 24.04 LAMP integration test workflow
-    Merge pull request #4 from horde/feat/remove-phantom-deps
-    feat: Drop unnecessary pear dependency
-    chore(deps): remove unused pear/console_table dependency
-    fix(router): improve script environment and multi-app routing support
-    feat(dev): add router.php for rampage.php front controller support
-    Merge pull request #2 from horde/dev-tools-scripts
-    Add PHP 8.5 CI workflow using new installation script
-    Add development environment setup and server scripts
+  notes: "fix(bundle): add vendor prefix to hordectl dependency\nfix(bundle): correct package name to horde/bundle\nchore(bundle): add changelog.yml for release tooling\nchore(bundle): add doc/ directory for release tooling\nchore: add gitignore entries\nchore: Only support installer 3.4 and newer\ndoc: Update README\nci: prototype of a LEPP equivalent of the apache workflow\nfix(ci): run migrations from install dir with proper composer config\nfix: Run migrations as root\nci: use apache vhost fixture with rewrite rules for API auth\nci: add Ubuntu 24.04 LAMP integration test workflow\nMerge pull request #4 from horde/feat/remove-phantom-deps\nfeat: Drop unnecessary pear dependency\nchore(deps): remove unused pear/console_table dependency\nfix(router): improve script environment and multi-app routing support\nfeat(dev): add router.php for rampage.php front controller support\nMerge pull request #2 from horde/dev-tools-scripts\nAdd PHP 8.5 CI workflow using new installation script\nAdd development environment setup and server scripts"
 1.1.0:
   api: 1.1.0
   state:
     release: RC
     api: RC
   date: 2026-05-19
-  notes: |
-    Initial H6 release of the Horde bundle.
+  notes: "Initial H6 release of the Horde bundle.\n"
   changes:
     feat:
-      - |-
-        feat(bundle): initial horde 6 bundle packaging
+      - 'feat(bundle): initial horde 6 bundle packaging'
